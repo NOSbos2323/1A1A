@@ -16,8 +16,32 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5000000, // 5MB
         skipWaiting: true,
         clientsClaim: true,
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/api\.dicebear\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "dicebear-cache",
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "unsplash-cache",
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+            },
+          },
+        ],
       },
-      includeAssets: ["yacin-gym-logo.png", "vite.svg"],
+      includeAssets: ["yacin-gym-logo.png", "vite.svg", "success-sound.mp3"],
       manifest: {
         name: "Yacin Gym - نادي ياسين الرياضي",
         short_name: "YacinGym",
@@ -46,14 +70,6 @@ export default defineConfig({
             purpose: "any maskable",
           },
         ],
-        screenshots: [
-          {
-            src: "yacin-gym-logo.png",
-            sizes: "1280x720",
-            type: "image/png",
-            form_factor: "wide",
-          },
-        ],
       },
     }),
   ],
@@ -61,6 +77,24 @@ export default defineConfig({
     alias: {
       "@": resolve(__dirname, "./src"),
     },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom"],
+          ui: [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-select",
+            "@radix-ui/react-toast",
+          ],
+          utils: ["localforage", "date-fns"],
+        },
+      },
+    },
+    sourcemap: false,
+    minify: "terser",
+    target: "es2015",
   },
   server: {
     // @ts-ignore
